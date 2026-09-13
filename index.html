@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<!-- Valheim Server Configurator. Copyright (C) 2026 icemansparks.
+     Licensed under the GNU Affero General Public License v3.0 or later.
+     Source: https://github.com/icemansparks/ValheimWorldConfigurator -->
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Visual configurator for Valheim dedicated servers. Generate WindowsGSM, Windows .bat, Linux, and Docker Compose configs instantly.">
+<meta property="og:title" content="Valheim Server Configurator">
+<meta property="og:description" content="Visual configurator for Valheim dedicated servers. Sliders, toggles, and one-click config generation for WindowsGSM, Windows, Linux, and Docker.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://icemansparks.github.io/ValheimWorldConfigurator/">
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
+<meta name="theme-color" content="#100a04">
+<meta name="keywords" content="Valheim, dedicated server, server configurator, WindowsGSM, Docker, Linux, SteamCMD, server setup, world modifiers">
+<title>Valheim Server Configurator</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Source+Sans+3:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="wrap">
+
+  <header class="page-header">
+    <h1 data-i18n="page.title">Valheim Server Configurator</h1>
+    <p data-i18n="page.subtitle">Configure your dedicated server and generate ready-to-use startup commands</p>
+    <div class="lang-switcher" id="langSwitcher"></div>
+  </header>
+
+  <div class="panel-grid">
+
+    <!-- panel: server identity -->
+    <div class="panel panel-identity">
+      <div class="panel-title" data-i18n="panel.identity">Server Identity</div>
+      <div class="inline-fields">
+        <div class="field-group">
+        <label data-i18n="field.serverName">Server Name</label>
+        <input type="text" id="serverName" value="My Valheim Server" oninput="updateOutputs()">
+        </div>
+        <div class="field-group">
+        <label data-i18n="field.password">Password</label>
+        <input type="password" id="serverPassword" value="" data-i18n-placeholder="ph.password" placeholder="(leave blank for no password)" oninput="updateOutputs()">
+        </div>
+      </div>
+      <div class="inline-fields">
+      <div class="field-group">
+      <div class="label-row"><label data-i18n="field.port">Port</label><span class="hint-wrap"><button type="button" class="hint-btn" aria-describedby="hp-port" data-i18n-aria="a11y.hint" aria-label="More information">i</button><span class="hint-pop" id="hp-port" role="tooltip" data-i18n="hint.port">UDP (port+1 also used)</span></span></div>
+      <input aria-describedby="hp-port" type="number" id="serverPort" value="2456" oninput="updateOutputs()">
+      </div>
+      <div class="field-group">
+      <div class="label-row"><label data-i18n="field.queryPort">Query Port</label><span class="hint-wrap"><button type="button" class="hint-btn" aria-describedby="hp-queryPort" data-i18n-aria="a11y.hint" aria-label="More information">i</button><span class="hint-pop" id="hp-queryPort" role="tooltip" data-i18n="hint.queryPort">Typically port+1</span></span></div>
+      <input aria-describedby="hp-queryPort" type="number" id="queryPort" value="2457" oninput="updateOutputs()">
+      </div>
+      </div>
+      <div class="inline-fields">
+        <div class="field-group">
+        <div class="label-row"><label data-i18n="field.worldName">World Name</label><span class="hint-wrap"><button type="button" class="hint-btn" aria-describedby="hp-worldName" data-i18n-aria="a11y.hint" aria-label="More information">i</button><span class="hint-pop" id="hp-worldName" role="tooltip" data-i18n="hint.worldName">Creates a new world if it does not exist</span></span></div>
+        <input aria-describedby="hp-worldName" type="text" id="worldName" value="Dedicated" oninput="updateOutputs()">
+        </div>
+        <div class="field-group">
+        <label>
+        <span data-i18n="field.instanceId">Instance ID</span>
+        <span style="color:var(--cream-dim);" data-i18n="field.optional"> (optional)</span>
+        </label>
+        <input type="text" id="instanceId" value="" data-i18n-placeholder="ph.instanceId" placeholder="e.g. 1, for multiple servers on same IP" oninput="updateOutputs()">
+        </div>
+      </div>
+      <div class="field-group">
+      <label data-i18n="field.saveDir">Save Directory</label>
+      <input type="text" id="saveDir" value="" data-i18n-placeholder="ph.saveDir" placeholder="(default save location)" oninput="updateOutputs()">
+      </div>
+      <div class="divider"></div>
+      <label class="toggle-row" for="chkPublic">
+        <input type="checkbox" id="chkPublic" checked onchange="updateOutputs()">
+        <span class="tog"></span>
+        <span class="tog-label" data-i18n="toggle.public">Public (visible in server browser)</span>
+      </label>
+      <label class="toggle-row" for="chkCrossplay">
+        <input type="checkbox" id="chkCrossplay" onchange="updateOutputs()">
+        <span class="tog"></span>
+        <span class="tog-label" data-i18n="toggle.crossplay">Crossplay (PlayFab backend)</span>
+      </label>
+    </div><!-- /panel: server identity -->
+
+    <!-- panel: backup and save -->
+    <div class="panel panel-backup">
+      <div class="panel-title" data-i18n="panel.backup">Backup &amp; Save Settings</div>
+      <div class="inline-fields">
+        <div class="field-group">
+          <div class="label-row"><label data-i18n="field.saveInterval">Save Interval (sec)</label><span class="hint-wrap"><button type="button" class="hint-btn" aria-describedby="hp-saveInterval" data-i18n-aria="a11y.hint" aria-label="More information">i</button><span class="hint-pop" id="hp-saveInterval" role="tooltip" data-i18n="hint.saveInterval">Default: 1800 (30 min)</span></span></div>
+          <input aria-describedby="hp-saveInterval" type="number" id="saveInterval" value="1800" oninput="updateOutputs()">
+        </div>
+        <div class="field-group">
+          <div class="label-row"><label data-i18n="field.backupCount">Backup Count</label><span class="hint-wrap"><button type="button" class="hint-btn" aria-describedby="hp-backupCount" data-i18n-aria="a11y.hint" aria-label="More information">i</button><span class="hint-pop" id="hp-backupCount" role="tooltip" data-i18n="hint.backupCount">How many backups to keep</span></span></div>
+          <input aria-describedby="hp-backupCount" type="number" id="backupCount" value="4" min="1" oninput="updateOutputs()">
+        </div>
+      </div>
+      <div class="inline-fields">
+        <div class="field-group">
+          <div class="label-row"><label data-i18n="field.backupShort">Short Backup (sec)</label><span class="hint-wrap"><button type="button" class="hint-btn" aria-describedby="hp-backupShort" data-i18n-aria="a11y.hint" aria-label="More information">i</button><span class="hint-pop" id="hp-backupShort" role="tooltip" data-i18n="hint.backupShort">Default: 7200 (2 h)</span></span></div>
+          <input aria-describedby="hp-backupShort" type="number" id="backupShort" value="7200" oninput="updateOutputs()">
+        </div>
+        <div class="field-group">
+          <div class="label-row"><label data-i18n="field.backupLong">Long Backup (sec)</label><span class="hint-wrap"><button type="button" class="hint-btn" aria-describedby="hp-backupLong" data-i18n-aria="a11y.hint" aria-label="More information">i</button><span class="hint-pop" id="hp-backupLong" role="tooltip" data-i18n="hint.backupLong">Default: 43200 (12 h)</span></span></div>
+          <input aria-describedby="hp-backupLong" type="number" id="backupLong" value="43200" oninput="updateOutputs()">
+        </div>
+      </div>
+      <div class="field-group">
+        <label>
+          <span data-i18n="field.logFile">Log File Path</span>
+          <span style="color:var(--cream-dim);" data-i18n="field.optional"> (optional)</span>
+        </label>
+        <input type="text" id="logFile" value="" data-i18n-placeholder="ph.logFile" placeholder='e.g. C:\logs\valheim.log' oninput="updateOutputs()">
+      </div>
+    </div><!-- /panel: backup and save -->
+
+    <!-- panel: world modifiers -->
+    <div class="panel panel-modifiers">
+      <div class="panel-title" data-i18n="panel.modifiers">World Modifiers</div>
+
+        <!-- Presets -->
+        <div class="presets-grid">
+          <button class="preset-btn" onclick="applyPreset('easy',this)" data-i18n="preset.easy">Easy</button>
+          <button class="preset-btn" onclick="applyPreset('hard',this)" data-i18n="preset.hard">Hard</button>
+          <button class="preset-btn" onclick="applyPreset('hardcore',this)" data-i18n="preset.hardcore">Hardcore</button>
+          <button class="preset-btn" onclick="applyPreset('casual',this)" data-i18n="preset.casual">Casual</button>
+          <button class="preset-btn" onclick="applyPreset('hammer',this)" data-i18n="preset.hammer">Hammer Mode</button>
+          <button class="preset-btn" onclick="applyPreset('immersive',this)" data-i18n="preset.immersive">Immersive</button>
+        </div>
+        <button class="reset-btn" onclick="applyPreset('normal',null)" data-i18n="preset.reset">&#8635; Reset to Normal</button>
+        <div class="divider"></div>
+
+        <!-- Combat -->
+        <div class="slider-row">
+          <div class="slider-head">
+            <span class="s-name" data-i18n="slider.combat">Combat</span>
+            <span class="s-val" id="lbl-combat">Normal</span>
+          </div>
+          <input type="range" id="sl-combat" min="0" max="4" value="2" oninput="onSlider('combat')" onchange="updateOutputs()">
+        </div>
+
+        <!-- Death Penalty -->
+        <div class="slider-row">
+          <div class="slider-head">
+            <span class="s-name" data-i18n="slider.death">Death Penalty</span>
+            <span class="s-val" id="lbl-death">Normal</span>
+          </div>
+          <input type="range" id="sl-death" min="0" max="5" value="3" oninput="onSlider('death')" onchange="updateOutputs()">
+        </div>
+
+        <!-- Resource Rate -->
+        <div class="slider-row">
+          <div class="slider-head">
+            <span class="s-name" data-i18n="slider.resources">Resource Rate</span>
+            <span class="s-val" id="lbl-resources">Normal</span>
+          </div>
+          <input type="range" id="sl-resources" min="0" max="5" value="2" oninput="onSlider('resources')" onchange="updateOutputs()">
+        </div>
+
+        <!-- Raid Rate -->
+        <div class="slider-row">
+          <div class="slider-head">
+            <span class="s-name" data-i18n="slider.raids">Raid Rate</span>
+            <span class="s-val" id="lbl-raids">Normal</span>
+          </div>
+          <input type="range" id="sl-raids" min="0" max="5" value="3" oninput="onSlider('raids')" onchange="updateOutputs()">
+        </div>
+
+        <!-- Portals -->
+        <div class="slider-row">
+          <div class="slider-head">
+            <span class="s-name" data-i18n="slider.portals">Portals</span>
+            <span class="s-val" id="lbl-portals">Normal</span>
+          </div>
+          <input type="range" id="sl-portals" min="0" max="3" value="1" oninput="onSlider('portals')" onchange="updateOutputs()">
+        </div>
+
+        <div class="divider"></div>
+
+        <!-- Boolean toggles -->
+        <div class="checks-grid">
+          <label class="toggle-row" for="chkNobuildcost">
+            <input type="checkbox" id="chkNobuildcost" onchange="updateOutputs()">
+            <span class="tog"></span><span class="tog-label" data-i18n="toggle.nobuildcost">No Build Cost</span>
+          </label>
+          <label class="toggle-row" for="chkPlayerevents">
+            <input type="checkbox" id="chkPlayerevents" onchange="updateOutputs()">
+            <span class="tog"></span><span class="tog-label" data-i18n="toggle.playerevents">Player Based Raids</span>
+          </label>
+          <label class="toggle-row" for="chkPassivemobs">
+            <input type="checkbox" id="chkPassivemobs" onchange="updateOutputs()">
+            <span class="tog"></span><span class="tog-label" data-i18n="toggle.passivemobs">Passive Enemies</span>
+          </label>
+          <label class="toggle-row" for="chkNomap">
+            <input type="checkbox" id="chkNomap" onchange="updateOutputs()">
+            <span class="tog"></span><span class="tog-label" data-i18n="toggle.nomap">No Map</span>
+          </label>
+          <label class="toggle-row" for="chkFire">
+            <input type="checkbox" id="chkFire" onchange="updateOutputs()">
+            <span class="tog"></span><span class="tog-label" data-i18n="toggle.fire">Fire Hazards</span>
+          </label>
+        </div>
+
+    </div><!-- /panel: world modifiers -->
+
+  </div><!-- /panel-grid -->
+
+  <!-- OUTPUT (full width) -->
+  <div class="panel">
+    <div class="panel-title" data-i18n="panel.output">Generated Configuration</div>
+    <div class="output-header">
+      <div class="tabs">
+        <button class="tab-btn active"  onclick="switchTab('windowsgsm',this)" data-i18n="tab.windowsgsm">WindowsGSM</button>
+        <button class="tab-btn"         onclick="switchTab('winbat',this)" data-i18n="tab.winbat">Windows .bat</button>
+        <button class="tab-btn"         onclick="switchTab('linux',this)" data-i18n="tab.linux">Linux / SteamCMD</button>
+        <button class="tab-btn"         onclick="switchTab('docker',this)" data-i18n="tab.docker">Docker Compose</button>
+      </div>
+      <button class="import-btn" onclick="openImport()" data-i18n="import.btn">Import Config</button>
+    </div>
+    <div class="tab-body">
+
+      <!-- WindowsGSM -->
+      <div id="tab-windowsgsm" class="tab-pane active">
+        <p class="out-desc" data-i18n-html="desc.windowsgsm">
+          Paste into the <code>Server Start Param</code> field in WindowsGSM.<br>
+          Server Name, Port, Query Port, and World are set in their own WindowsGSM fields and are <strong>not</strong> included here.
+        </p>
+        <div class="out-box">
+          <textarea class="cfg" id="out-windowsgsm" readonly rows="4"></textarea>
+          <button class="copy-btn" onclick="copyOut('out-windowsgsm',this)" data-i18n="copy.btn">Copy</button>
+        </div>
+      </div>
+
+      <!-- Windows BAT -->
+      <div id="tab-winbat" class="tab-pane">
+        <p class="out-desc" data-i18n-html="desc.winbat">
+          Complete <code>start_headless_server.bat</code>. Place it in your Valheim server directory and run as Administrator.
+        </p>
+        <div class="out-box">
+          <textarea class="cfg" id="out-winbat" readonly rows="14"></textarea>
+          <button class="copy-btn" onclick="copyOut('out-winbat',this)" data-i18n="copy.btn">Copy</button>
+        </div>
+      </div>
+
+      <!-- Linux -->
+      <div id="tab-linux" class="tab-pane">
+        <p class="out-desc" data-i18n-html="desc.linux">
+          Complete <code>start_server.sh</code> for Linux / SteamCMD installs.<br>
+          Make executable: <code>chmod +x start_server.sh</code>
+        </p>
+        <div class="out-box">
+          <textarea class="cfg" id="out-linux" readonly rows="14"></textarea>
+          <button class="copy-btn" onclick="copyOut('out-linux',this)" data-i18n="copy.btn">Copy</button>
+        </div>
+      </div>
+
+      <!-- Docker -->
+      <div id="tab-docker" class="tab-pane">
+        <p class="out-desc" data-i18n-html="desc.docker">
+          <code>docker-compose.yml</code> using the <strong>lloesche/valheim-server</strong> image.<br>
+          Run with: <code>docker compose up -d</code>
+        </p>
+        <div class="out-box">
+          <textarea class="cfg" id="out-docker" readonly rows="26"></textarea>
+          <button class="copy-btn" onclick="copyOut('out-docker',this)" data-i18n="copy.btn">Copy</button>
+        </div>
+      </div>
+
+    </div><!-- /tab-body -->
+  </div><!-- /output panel -->
+
+  <footer class="page-footer">
+    <div class="footer-links">
+      <h4 data-i18n="footer.official">Official Documentation</h4>
+      <a href="https://www.valheimgame.com/support/a-guide-to-dedicated-servers/" target="_blank" rel="noopener">Valheim Dedicated Server Guide</a>
+      <a href="https://valheim.weirdgloop.org/w/World_Modifiers" target="_blank" rel="noopener">World Modifiers, Valheim Wiki</a>
+      <a href="https://valheim.weirdgloop.org/w/Console_commands" target="_blank" rel="noopener">Console Commands, Valheim Wiki</a>
+    </div>
+    <div class="footer-links">
+      <h4 data-i18n="footer.tools">Hosting Tools</h4>
+      <a href="https://windowsgsm.com/" target="_blank" rel="noopener">WindowsGSM</a>
+      <a href="https://github.com/lloesche/valheim-server-docker" target="_blank" rel="noopener">lloesche/valheim-server (Docker)</a>
+      <a href="https://store.steampowered.com/app/896660/Valheim_Dedicated_Server/" target="_blank" rel="noopener">Valheim Dedicated Server (Steam)</a>
+    </div>
+    <div class="footer-version">
+      <h4 class="footer-title" data-i18n="footer.appname">Valheim Server Configurator</h4>
+      <span data-i18n="footer.compat">Compatible with Valheim</span> <strong id="ver-label"></strong> <span id="build-label"></span><br>
+      <a href="https://github.com/icemansparks/ValheimWorldConfigurator" target="_blank" rel="noopener" data-i18n="footer.source">Source on GitHub</a><br>
+      <a class="kofi-btn" href="https://ko-fi.com/icemansparks" target="_blank" rel="noopener">
+        <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M4 8h13v6a5 5 0 0 1-5 5H9a5 5 0 0 1-5-5z"/>
+          <path d="M17 9h1.5a2.5 2.5 0 0 1 0 5H17"/>
+          <path d="M7 2v2M10.5 2v2M14 2v2"/>
+        </svg>
+        <span data-i18n="footer.kofi">Buy me a coffee</span>
+      </a>
+      <span class="footer-disclaimer" data-i18n="footer.disclaimer">Not affiliated with Iron Gate AB. AGPL-3.0</span>
+    </div>
+  </footer>
+
+  <!-- Import Modal -->
+  <div id="importModal" class="modal-overlay" onclick="handleModalBg(event)">
+    <div class="modal-box">
+      <div class="modal-title" data-i18n="import.title">Import Existing Config</div>
+      <textarea id="importText" data-i18n-placeholder="import.placeholder" placeholder="Paste your config here, any format (WindowsGSM, .bat, .sh, docker-compose.yml)"></textarea>
+      <div class="modal-actions">
+        <span class="modal-msg" id="importMsg"></span>
+        <button class="modal-do-btn" onclick="doImport()" data-i18n="import.do">Import</button>
+        <button class="modal-cancel-btn" onclick="closeImport()" data-i18n="import.cancel">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /wrap -->
+<!-- one file per language, see lang/README.md -->
+<script src="lang/en.js"></script>
+<script src="lang/de.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

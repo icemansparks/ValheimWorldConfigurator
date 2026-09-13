@@ -1,0 +1,39 @@
+name: identity-check
+
+on:
+  push:
+    branches: [master]
+
+jobs:
+  check:
+    if: github.server_url == 'https://github.com'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Check commit author and committer
+        env:
+          BEFORE: ${{ github.event.before }}
+          AFTER: ${{ github.event.after }}
+          WANT_EMAIL: git@icemansparks.de
+        run: |
+          set -euo pipefail
+          if [ "$AFTER" = "0000000000000000000000000000000000000000" ]; then
+            echo "Branch deleted, no commits to check."
+            exit 0
+          fi
+          # New branch or force push: BEFORE is not an ancestor, check the whole history.
+          if git merge-base --is-ancestor "$BEFORE" "$AFTER" 2>/dev/null; then
+            range="${BEFORE}..${AFTER}"
+          else
+            range="${AFTER}"
+          fi
+          bad=$(git log --format='%H %ae %ce' "$range" | awk -v w="$WANT_EMAIL" '$2 != w || $3 != w')
+          if [ -n "$bad" ]; then
+            echo "::error::Commits with an unexpected author or committer email:"
+            echo "$bad"
+            exit 1
+          fi
+          echo "All commits in $range use $WANT_EMAIL."
