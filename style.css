@@ -276,6 +276,7 @@ textarea.cfg{
 .modal-box textarea:focus{border-color:var(--gold);}
 .modal-actions{display:flex;gap:9px;justify-content:flex-end;align-items:center;}
 .modal-msg{font-size:0.85em;color:#a8d080;flex:1;}
+.modal-msg.warn{color:var(--gold);}
 .modal-do-btn{
   background:linear-gradient(180deg,var(--panel-lite) 0%,var(--panel) 100%);
   border:1px solid var(--gold-dim);color:var(--gold);

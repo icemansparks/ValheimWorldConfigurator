@@ -13,9 +13,10 @@ if (!TRANSLATIONS.en) {
 }
 
 // Slider definitions (labelKeys point into TRANSLATIONS)
+// arg is the server's modifier name where it differs from the slider id.
 const SLIDERS = {
   combat:    { values:['veryeasy','easy','normal','hard','veryhard'],          labelKeys:['lbl.veryeasy','lbl.easy','lbl.normal','lbl.hard','lbl.veryhard'],           def:2 },
-  death:     { values:['casual','veryeasy','easy','normal','hard','hardcore'],  labelKeys:['lbl.casual','lbl.veryeasy','lbl.easy','lbl.normal','lbl.hard','lbl.hardcore'], def:3 },
+  death:     { values:['casual','veryeasy','easy','normal','hard','hardcore'],  labelKeys:['lbl.casual','lbl.veryeasy','lbl.easy','lbl.normal','lbl.hard','lbl.hardcore'], def:3, arg:'deathpenalty' },
   resources: { values:['muchless','less','normal','more','muchmore','most'],     labelKeys:['lbl.res.half','lbl.res.threequarter','lbl.normal','lbl.res.onehalf','lbl.res.double','lbl.res.triple'], def:2 },
   raids:     { values:['none','muchless','less','normal','more','muchmore'],    labelKeys:['lbl.none','lbl.muchless','lbl.less','lbl.normal','lbl.more','lbl.muchmore'], def:3 },
   portals:   { values:['casual','normal','hard','veryhard'],                    labelKeys:['lbl.casual','lbl.normal','lbl.hard','lbl.veryhard'],                        def:1 }
@@ -86,7 +87,7 @@ function modifierArgs() {
   const args = [];
   for (const [key, d] of Object.entries(SLIDERS)) {
     const idx = +document.getElementById('sl-'+key).value;
-    if (idx !== d.def) args.push('-modifier '+key+' '+d.values[idx]);
+    if (idx !== d.def) args.push('-modifier '+(d.arg || key)+' '+d.values[idx]);
   }
   for (const k of CHECKS) {
     if (document.getElementById(CHK_ID[k]).checked) args.push('-setkey '+CHK_KEY[k]);
@@ -300,12 +301,20 @@ function doImport() {
   const text = document.getElementById('importText').value;
   const t = curT();
   if (!text.trim()) return;
+  const msg = document.getElementById('importMsg');
+  msg.classList.remove('warn');
   try {
-    parseAndImport(text);
-    document.getElementById('importMsg').textContent = t['import.success'] || 'Config imported!';
+    const unmatched = parseAndImport(text);
+    if (unmatched.length) {
+      // Stay open so the user sees which settings did not carry over.
+      msg.textContent = (t['import.unmatched'] || 'Imported, but these values were not applied:') + ' ' + unmatched.join(', ');
+      msg.classList.add('warn');
+      return;
+    }
+    msg.textContent = t['import.success'] || 'Config imported!';
     setTimeout(closeImport, 900);
   } catch(e) {
-    document.getElementById('importMsg').textContent = t['import.error'] || 'Could not parse config.';
+    msg.textContent = t['import.error'] || 'Could not parse config.';
   }
 }
 
@@ -378,17 +387,26 @@ function applyParsedArgs(params) {
   sf('backupLong',   params.backuplong);
   if (params.public !== undefined) sc('chkPublic', params.public === '1' || params.public === true);
   if (params.crossplay !== undefined) sc('chkCrossplay', true);
-  // Sliders
+  // Sliders. Modifier names or values the tool does not list are reported, not applied.
   const t = curT();
+  const unmatched = [];
+  const known = new Set();
   for (const [key, d] of Object.entries(SLIDERS)) {
-    const val = params['modifier_'+key];
+    const name = d.arg || key;
+    known.add(name);
+    const val = params['modifier_'+name];
     if (val !== undefined) {
       const idx = d.values.indexOf(val);
       if (idx >= 0) {
         document.getElementById('sl-'+key).value = idx;
         document.getElementById('lbl-'+key).textContent = t[d.labelKeys[idx]] || d.labelKeys[idx];
+      } else {
+        unmatched.push(name+' '+val);
       }
     }
+  }
+  for (const p of Object.keys(params)) {
+    if (p.startsWith('modifier_') && !known.has(p.slice(9))) unmatched.push(p.slice(9)+' '+params[p]);
   }
   // Boolean toggles via -setkey
   sc('chkNobuildcost', params['setkey_nobuildcost']);
@@ -398,6 +416,7 @@ function applyParsedArgs(params) {
   sc('chkFire', params['setkey_fire']);
   document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('active'));
   updateOutputs();
+  return unmatched;
 }
 function parseAndImport(raw) {
   const text = raw.trim();
@@ -411,7 +430,7 @@ function parseAndImport(raw) {
   } else {
     argStr = text;
   }
-  applyParsedArgs(parseArgString(argStr));
+  return applyParsedArgs(parseArgString(argStr));
 }
 
 // Init

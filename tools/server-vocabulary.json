@@ -1,0 +1,17 @@
+{
+  "build": "25253791",
+  "sources": [
+    "Valheim Dedicated Server Manual.pdf shipped with the build: -preset, -modifier and -setkey sections",
+    "assembly_valheim.dll: WorldPresets, WorldModifiers, WorldModifierOption and GlobalKeys enums read by FejdStartup.ParseServerArguments",
+    "fire is missing from the manual but is a GlobalKeys value; a live server stores it in the world file"
+  ],
+  "presets": ["normal", "casual", "easy", "hard", "hardcore", "immersive", "hammer"],
+  "modifiers": {
+    "combat": ["veryeasy", "easy", "hard", "veryhard"],
+    "deathpenalty": ["casual", "veryeasy", "easy", "hard", "hardcore"],
+    "resources": ["muchless", "less", "more", "muchmore", "most"],
+    "raids": ["none", "muchless", "less", "more", "muchmore"],
+    "portals": ["casual", "hard", "veryhard"]
+  },
+  "setkeys": ["nobuildcost", "playerevents", "passivemobs", "nomap", "fire"]
+}

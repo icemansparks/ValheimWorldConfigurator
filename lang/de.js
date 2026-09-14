@@ -28,6 +28,7 @@ window.TRANSLATIONS['de'] = {
   'import.btn':'Konfig importieren','import.title':'Bestehende Konfiguration importieren',
   'import.placeholder':'Konfiguration hier einf\xfcgen, beliebiges Format (WindowsGSM, .bat, .sh, docker-compose.yml)',
   'import.do':'Importieren','import.cancel':'Abbrechen','import.success':'Konfiguration importiert!','import.error':'Konfiguration konnte nicht gelesen werden.',
+  'import.unmatched':'Importiert, aber diese Werte wurden nicht \xfcbernommen:',
   'footer.official':'Offizielle Dokumentation','footer.tools':'Hosting-Tools',
   'footer.appname':'Valheim Server-Konfigurator','footer.compat':'Kompatibel mit Valheim',
   'footer.source':'Quellcode auf GitHub','footer.kofi':'Spendier mir einen Kaffee',

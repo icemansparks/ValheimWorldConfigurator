@@ -28,6 +28,7 @@ window.TRANSLATIONS['en'] = {
   'import.btn':'Import Config','import.title':'Import Existing Config',
   'import.placeholder':'Paste your config here, any format (WindowsGSM, .bat, .sh, docker-compose.yml)',
   'import.do':'Import','import.cancel':'Cancel','import.success':'Config imported!','import.error':'Could not parse config.',
+  'import.unmatched':'Imported, but these values were not applied:',
   'footer.official':'Official Documentation','footer.tools':'Hosting Tools',
   'footer.appname':'Valheim Server Configurator','footer.compat':'Compatible with Valheim',
   'footer.source':'Source on GitHub','footer.kofi':'Buy me a coffee',
