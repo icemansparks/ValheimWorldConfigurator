@@ -62,16 +62,26 @@ for (const name of Object.keys(PRESETS)) {
   checkEmitted(`preset ${name}`);
 }
 
-// Every server modifier value imports into the matching slider.
+// Every server modifier value imports into the matching slider without a warning.
 for (const [name, values] of Object.entries(vocab.modifiers)) {
   const entry = Object.entries(SLIDERS).find(([key, d]) => (d.arg || key) === name);
   if (!entry) { errors.push(`server modifier '${name}' has no slider`); continue; }
   const [key, d] = entry;
   for (const value of values) {
     resetForm();
-    sandbox.parseAndImport(`-modifier ${name} ${value}`);
+    const unmatched = sandbox.parseAndImport(`-modifier ${name} ${value}`);
     const got = d.values[+el('sl-' + key).value];
     if (got !== value) errors.push(`import '-modifier ${name} ${value}' set slider ${key} to '${got}'`);
+    if (unmatched.length) errors.push(`import '-modifier ${name} ${value}' warned: ${unmatched.join(', ')}`);
+  }
+  // Slider values the server does not accept (the default) warn and leave the slider alone.
+  for (const value of d.values.filter(v => !values.includes(v))) {
+    resetForm();
+    el('sl-' + key).value = String((d.def + 1) % d.values.length);
+    const before = el('sl-' + key).value;
+    const unmatched = sandbox.parseAndImport(`-modifier ${name} ${value}`);
+    if (!unmatched.includes(`${name} ${value}`)) errors.push(`import '-modifier ${name} ${value}' is not reported, but the server rejects it`);
+    if (el('sl-' + key).value !== before) errors.push(`import '-modifier ${name} ${value}' moved slider ${key}`);
   }
 }
 

@@ -388,6 +388,7 @@ function applyParsedArgs(params) {
   if (params.public !== undefined) sc('chkPublic', params.public === '1' || params.public === true);
   if (params.crossplay !== undefined) sc('chkCrossplay', true);
   // Sliders. Modifier names or values the tool does not list are reported, not applied.
+  // The default position has no server value (the server rejects 'normal'), so it counts as unlisted.
   const t = curT();
   const unmatched = [];
   const known = new Set();
@@ -397,7 +398,7 @@ function applyParsedArgs(params) {
     const val = params['modifier_'+name];
     if (val !== undefined) {
       const idx = d.values.indexOf(val);
-      if (idx >= 0) {
+      if (idx >= 0 && idx !== d.def) {
         document.getElementById('sl-'+key).value = idx;
         document.getElementById('lbl-'+key).textContent = t[d.labelKeys[idx]] || d.labelKeys[idx];
       } else {
