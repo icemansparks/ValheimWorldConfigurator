@@ -1,45 +1,10 @@
 // Compares every command-line name and value the tool can emit or import
 // against tools/server-vocabulary.json, the list taken from the dedicated server.
 // Usage: node tools/check-vocabulary.js
-const fs = require('fs');
-const path = require('path');
-const vm = require('vm');
+const { loadApp, readVocabulary } = require('./load-app');
 
-const root = path.join(__dirname, '..');
-const vocab = JSON.parse(fs.readFileSync(path.join(__dirname, 'server-vocabulary.json'), 'utf8'));
-
-// Just enough DOM for app.js to load and generate commands.
-const elements = {};
-function el(id) {
-  if (!elements[id]) {
-    elements[id] = {
-      id, value: '', checked: false, textContent: '', dataset: {},
-      classList: { add() {}, remove() {}, toggle() {} },
-      setAttribute() {}, appendChild() {}, addEventListener() {}
-    };
-  }
-  return elements[id];
-}
-const sandbox = {
-  window: {}, console, setTimeout, navigator: {},
-  localStorage: { getItem: () => null, setItem() {} },
-  document: {
-    getElementById: el,
-    querySelectorAll: () => [],
-    createElement: () => el('created-' + Object.keys(elements).length),
-    documentElement: {}
-  }
-};
-vm.createContext(sandbox);
-for (const f of fs.readdirSync(path.join(root, 'lang')).filter(f => f.endsWith('.js') && !f.startsWith('check-'))) {
-  vm.runInContext(fs.readFileSync(path.join(root, 'lang', f), 'utf8'), sandbox, { filename: 'lang/' + f });
-}
-// const declarations are not sandbox properties, so expose what the check needs.
-vm.runInContext(
-  fs.readFileSync(path.join(root, 'app.js'), 'utf8') +
-  '\n;this.SLIDERS = SLIDERS; this.PRESETS = PRESETS; this.CHECKS = CHECKS; this.CHK_ID = CHK_ID;',
-  sandbox, { filename: 'app.js' }
-);
+const vocab = readVocabulary();
+const { app: sandbox, el } = loadApp();
 const { SLIDERS, PRESETS, CHECKS, CHK_ID } = sandbox;
 
 const errors = [];

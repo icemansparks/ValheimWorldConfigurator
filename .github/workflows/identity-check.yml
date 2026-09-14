@@ -1,4 +1,5 @@
 name: identity-check
+# GitHub only. Forgejo reads .forgejo/workflows/ instead and ignores this directory.
 
 on:
   push:
