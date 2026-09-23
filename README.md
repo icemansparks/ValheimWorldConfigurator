@@ -36,7 +36,7 @@ Or use the hosted GitHub Pages version (see link above).
 
 ## Supported Valheim Version
 
-Compatible with Valheim **1.0.12** (dedicated server build 25253791, released 2026-09-11). 1.0 released 2026-09-09.
+Compatible with Valheim **1.0.15** (dedicated server build 25390671, released 2026-09-18). 1.0 released 2026-09-09.
 
 Modifier names and values are verified against the `Valheim Dedicated Server Manual.pdf` shipped with that build, and against a live server for the cases where the manual is wrong or incomplete.
 
