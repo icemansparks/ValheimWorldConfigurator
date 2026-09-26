@@ -1,5 +1,5 @@
 {
-  "build": "25390671",
+  "build": "25527701",
   "sources": [
     "Valheim Dedicated Server Manual.pdf shipped with the build: -preset, -modifier and -setkey sections",
     "assembly_valheim.dll: WorldPresets, WorldModifiers, WorldModifierOption and GlobalKeys enums read by FejdStartup.ParseServerArguments",

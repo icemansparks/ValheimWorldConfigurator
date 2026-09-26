@@ -3,8 +3,8 @@
 // Licensed under the GNU Affero General Public License v3.0 or later.
 // See LICENSE, or https://www.gnu.org/licenses/agpl-3.0.html
 // Version
-const VALHEIM_VERSION = '1.0.15';
-const VALHEIM_BUILD   = '25390671';
+const VALHEIM_VERSION = '1.0.16';
+const VALHEIM_BUILD   = '25527701';
 
 // Translations
 const TRANSLATIONS = window.TRANSLATIONS || {};
