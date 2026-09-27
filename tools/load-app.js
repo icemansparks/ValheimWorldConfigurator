@@ -35,7 +35,8 @@ function loadApp() {
   // const declarations are not sandbox properties, so expose what the tools need.
   vm.runInContext(
     fs.readFileSync(path.join(root, 'app.js'), 'utf8') +
-    '\n;this.SLIDERS = SLIDERS; this.PRESETS = PRESETS; this.CHECKS = CHECKS; this.CHK_ID = CHK_ID;',
+    '\n;this.SLIDERS = SLIDERS; this.PRESETS = PRESETS; this.CHECKS = CHECKS; this.CHK_ID = CHK_ID;' +
+    ' this.VALHEIM_BUILD = VALHEIM_BUILD;',
     sandbox, { filename: 'app.js' }
   );
   return { app: sandbox, el };

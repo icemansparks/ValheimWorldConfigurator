@@ -3,9 +3,11 @@
 // Usage: node tools/live-check.js <server-dir> [port]
 //   server-dir: directory holding valheim_server.x86_64 (Linux build)
 //   port:       game port for the throwaway world, default 2556
-// Refuses to run while any valheim_server.x86_64 process is up, apart from
-// leftovers of an earlier live check, which it kills first. The world is
-// created in a temporary save directory that is removed afterwards.
+// Refuses to run unless the installed server is the build app.js names, and
+// while a valheim_server.x86_64 from server-dir is up, apart from leftovers of
+// an earlier live check, which it kills first. Servers from other directories
+// are ignored. The world is created in a temporary save directory that is
+// removed afterwards.
 const fs = require('fs');
 const os = require('os');
 const path = require('path');
@@ -124,17 +126,42 @@ for (let waited = 0; killed.some(pid => fs.existsSync(`/proc/${pid}`)) && waited
   execFileSync('sleep', ['0.5']);
 }
 
-try {
-  const pids = execFileSync('pidof', ['valheim_server.x86_64'], { encoding: 'utf8' }).trim();
-  fail(`A dedicated server is already running (pid ${pids}); not starting a second one.`);
-} catch (e) {
-  if (e.code === 'ENOENT') fail('pidof is not installed; it is needed to detect a running dedicated server.');
-  if (e.status !== 1) throw e; // pidof exits 1 when nothing matches
+// Servers started from other install directories (live worlds beside a test
+// install) are left alone. A server whose binary cannot be resolved (another
+// user's process) counts as this install's, so the check refuses rather than guesses.
+let binary;
+try { binary = fs.realpathSync(path.join(serverDir, 'valheim_server.x86_64')); } catch (e) {
+  fail(`Cannot resolve the server binary in ${serverDir}: ${e.message}`);
 }
+const busy = [];
+for (const pid of fs.readdirSync('/proc').filter(p => /^\d+$/.test(p))) {
+  let argv0;
+  try { argv0 = fs.readFileSync(`/proc/${pid}/cmdline`, 'utf8').split('\0')[0]; } catch (e) { continue; }
+  if (path.basename(argv0) !== 'valheim_server.x86_64') continue;
+  let exe = null;
+  try { exe = fs.readlinkSync(`/proc/${pid}/exe`).replace(/ \(deleted\)$/, ''); } catch (e) {
+    if (e.code === 'ENOENT') continue; // exited meanwhile
+    console.log(`Cannot resolve the binary of server pid ${pid} (${e.code}); counting it as this install's.`);
+  }
+  if (exe === null || exe === binary) busy.push(pid);
+}
+if (busy.length) fail(`A dedicated server from ${serverDir} is already running (pid ${busy.join(' ')}); not starting a second one.`);
 
 // Every modifier set to the last non-default value the server lists, every checkbox on.
 const vocab = readVocabulary();
 const { app, el } = loadApp();
+
+// The check proves nothing about a build it does not run, so the install has to
+// be the build app.js names. steamcmd records it in the app manifest.
+const acf = path.join(serverDir, 'steamapps', 'appmanifest_896660.acf');
+let installed;
+try { installed = (fs.readFileSync(acf, 'utf8').match(/"buildid"\s+"(\d+)"/) || [])[1]; } catch (e) {
+  fail(`Cannot read ${acf} to find the installed server build: ${e.message}`);
+}
+if (installed !== app.VALHEIM_BUILD) {
+  fail(`The server in ${serverDir} is build ${installed || '(unknown)'}, but app.js names build ${app.VALHEIM_BUILD}.`);
+}
+console.log(`Server build ${installed} matches app.js.`);
 const expected = {};
 for (const [key, d] of Object.entries(app.SLIDERS)) {
   const name = d.arg || key;
